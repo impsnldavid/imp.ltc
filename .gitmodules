@@ -1,0 +1,8 @@
+[submodule "lib/max-sdk"]
+	path = lib/max-sdk
+	url = https://github.com/Cycling74/max-sdk
+	shallow = true
+[submodule "lib/libltc"]
+	path = lib/libltc
+	url = https://github.com/x42/libltc
+	shallow = true

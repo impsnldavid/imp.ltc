@@ -1,2 +1,2 @@
-# imp.ltc
-LTC (SMPTE) timecode encode/decode externals for Cycling 74's Max
+# imp.push
+Max external for control of Ableton Push device
