@@ -1,23 +1,19 @@
-/**
- ******************************************************************************************************************
- ******************************************************************************************************************
- 
- imp.ltc.decode~ V1.0
- by David Butler / The Impersonal Stereo
- 
- ******************************************************************************************************************
- 
- An ltc_decode object
- 
- ******************************************************************************************************************
- 
- TEST COPY - NOT FOR DISTRIBUTION
- 
- www.theimpersonalstereo.com
- 
- ******************************************************************************************************************
- 
- */
+// This file is part of imp.ltc
+// Copyright (C) 2017 David Butler / The Impersonal Stereo
+//
+// imp.ltc is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as
+// published by the Free Software Foundation, either version 3 of
+// the License, or (at your option) any later version.
+//
+// imp.ltc is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with imp.ltc.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "ext.h"
 #include "ext_obex.h"
@@ -29,30 +25,10 @@
 
 #include "math.h"
 
-
-// ******************************************************************************************************************
-
-typedef enum _OutputFormat
-{
-	OUTPUTFORMAT_RAW,
-	OUTPUTFORMAT_REALTIME,
-	OUTPUTFORMAT_FRAMES,
-	OUTPUTFORMAT_MILLISECONDS
-} OutputFormat;
+#include "common.h"
 
 
-typedef enum _Framerate
-{
-	FRAMERATE_23_97,
-	FRAMERATE_24,
-	FRAMERATE_25,
-	FRAMERATE_30DF,
-	FRAMERATE_30ND,
-	FRAMERATE_30
-} Framerate;
 
-
-// Object structure
 typedef struct _ltc_decode
 {
 	t_pxobject object_; // The object
@@ -73,8 +49,9 @@ typedef struct _ltc_decode
 	char tcReverse_;
 
 	Framerate attrFramerate_;
-	OutputFormat attrOutputFormat_;
+	TimecodeFormat attrOutputFormat_;
 } t_ltc_decode;
+
 
 
 void* ltc_decode_new(t_symbol* s, long argc, t_atom* argv);
@@ -88,7 +65,9 @@ int ltc_decode_getnumframes(t_ltc_decode* x);
 t_max_err ltc_decode_attrframerate_set(t_ltc_decode* x, t_object* attr, long argc, t_atom* argv);
 
 
+
 static t_class* ltc_decode_class = NULL;
+
 
 
 void ext_main(void* r)
@@ -123,8 +102,10 @@ void ext_main(void* r)
 	class_register(CLASS_BOX, c);
 	ltc_decode_class = c;
 
-	post("imp.ltc.decoder~ V1.0 by David Butler / The Impersonal Stereo");
+	post("imp.ltc.decode~ V%i.%i.%i by David Butler / The Impersonal Stereo", VERSION_MAJOR, VERSION_MINOR, VERSION_BUGFIX);
 }
+
+
 
 void* ltc_decode_new(t_symbol* s, long argc, t_atom* argv)
 {
@@ -143,7 +124,7 @@ void* ltc_decode_new(t_symbol* s, long argc, t_atom* argv)
 
 		x->tclock_ = 0;
 		object_attr_setlong(x, gensym("framerate"), FRAMERATE_30DF);
-		x->attrOutputFormat_ = OUTPUTFORMAT_RAW;
+		x->attrOutputFormat_ = TIMECODEFORMAT_RAW;
 
 		attr_args_process(x, argc, argv);
 
@@ -201,7 +182,7 @@ void ltc_decode_tcout(t_ltc_decode* x, t_symbol* s, long argc, t_atom* argv)
 {
 	switch (x->attrOutputFormat_)
 	{
-		case OUTPUTFORMAT_RAW:
+		case TIMECODEFORMAT_RAW:
 		{
 			t_atom av[4];
 			atom_setlong(av, x->hours_);
@@ -213,7 +194,7 @@ void ltc_decode_tcout(t_ltc_decode* x, t_symbol* s, long argc, t_atom* argv)
 
 			break;
 		}
-		case OUTPUTFORMAT_REALTIME:
+		case TIMECODEFORMAT_REALTIME:
 		{
 			int totalMilliseconds = floor((ltc_decode_getnumframes(x) * (1000.0f / x->fps_)) + 0.5);
 
@@ -230,12 +211,12 @@ void ltc_decode_tcout(t_ltc_decode* x, t_symbol* s, long argc, t_atom* argv)
 
 			break;
 		}
-		case OUTPUTFORMAT_FRAMES:
+		case TIMECODEFORMAT_FRAMES:
 		{
 			outlet_int(x->outlet_, ltc_decode_getnumframes(x));
 			break;
 		}
-		case OUTPUTFORMAT_MILLISECONDS:
+		case TIMECODEFORMAT_MILLISECONDS:
 		{
 			outlet_int(x->outlet_, floor((ltc_decode_getnumframes(x) * (1000.0f / x->fps_)) + 0.5));
 			break;

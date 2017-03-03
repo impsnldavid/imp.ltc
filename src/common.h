@@ -15,12 +15,31 @@
 // License along with imp.ltc.
 // If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef IMPLTC_COMMON_H
+#define IMPLTC_COMMON_H 1
 
-#ifndef LTC_EXT_H
-#define LTC_EXT_H 1
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 0
+#define VERSION_BUGFIX 0
 
-#include "ltc.h"
+typedef enum _OutputFormat
+{
+	TIMECODEFORMAT_RAW,
+	TIMECODEFORMAT_REALTIME,
+	TIMECODEFORMAT_FRAMES,
+	TIMECODEFORMAT_MILLISECONDS
+} TimecodeFormat;
 
-void ltc_decoder_write_double(LTCDecoder *d, double *buf, size_t size, ltc_off_t posinfo);
+
+typedef enum _Framerate
+{
+	FRAMERATE_23_97,
+	FRAMERATE_24,
+	FRAMERATE_25,
+	FRAMERATE_30DF,
+	FRAMERATE_30ND,
+	FRAMERATE_30
+} Framerate;
+
 
 #endif

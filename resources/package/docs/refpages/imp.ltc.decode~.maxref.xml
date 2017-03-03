@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+
+<c74object name='imp.ltc.decode~' category='imp.ltc'>
+
+	<digest>
+		Decode LTC (SMPTE timecode) from an audio signal
+	</digest>
+	<description>
+		Use the imp.ltc.decode~ object to extract an integer time value from an LTC audio source. This information can be used to synchronize Max to an external timing source.
+	</description>
+
+
+	<!--METADATA-->
+
+	<metadatalist>
+		<metadata name='author'>David Butler / The Impersonal Stereo</metadata>
+		<metadata name='tag'>imp.ltc</metadata>
+	</metadatalist>
+
+
+	<!--ARGUMENTS-->
+
+	<objarglist>
+
+	</objarglist>
+
+
+	<!--MESSAGES-->
+
+	<methodlist>
+
+		<method name='signal'>
+			<digest>LTC encoded audio signal</digest>
+			<description>LTC encoded audio signal</description>
+		</method>
+
+	</methodlist>
+
+
+	<!--ATTRIBUTES-->
+
+	<attributelist>
+
+		<attribute name='format' get='1' set='1' type='long' size='1' >
+			<digest>Output format of timecode value</digest>
+			<description>Output format of timecode value, in either timecode time or real time.</description>
+		</attribute>
+
+		<attribute name='framerate' get='1' set='0' type='long' size='1' >
+			<digest>Framerate of incoming timecode signal</digest>
+			<description>Framerate of incoming timecode signal, must be set correctly for accurate decoding.</description>
+		</attribute>
+
+	</attributelist>
+
+
+	<!--RELATED-->
+
+	<seealsolist>
+		<seealso name='imp.ltc.encode~' />
+	</seealsolist>
+
+
+</c74object>

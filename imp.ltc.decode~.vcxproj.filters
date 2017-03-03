@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\imp.ltc.decode~.c" />
+    <ClCompile Include="lib\libltc\src\decoder.c">
+      <Filter>libltc</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ltc_ext.c">
+      <Filter>libltc</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\libltc\src\timecode.c">
+      <Filter>libltc</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\libltc\src\encoder.c">
+      <Filter>libltc</Filter>
+    </ClCompile>
+    <ClCompile Include="$(C74SUPPORT)\max-includes\common\commonsyms.c">
+      <Filter>maxsdk</Filter>
+    </ClCompile>
+    <ClCompile Include="$(C74SUPPORT)\max-includes\common\dllmain_win.c">
+      <Filter>maxsdk</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="libltc">
+      <UniqueIdentifier>{d087ffc5-51a5-46b9-ba82-5ce6fc307da5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="maxsdk">
+      <UniqueIdentifier>{79293c97-cbd8-4998-9804-5d5abb5cb0f4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\ltc_ext.h">
+      <Filter>libltc</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\libltc\src\decoder.h">
+      <Filter>libltc</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\libltc\src\encoder.h">
+      <Filter>libltc</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\libltc\src\ltc.h">
+      <Filter>libltc</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

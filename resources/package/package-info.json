@@ -1,0 +1,37 @@
+{
+	"author" : "David Butler / The Impersonal Stereo",
+	"authors" : [  ],
+	"description" : "Externals for encoding/decoding LTC (SMPTE timecode)",
+	"displayname" : "",
+	"extends" : "",
+	"extensible" : 0,
+	"homepatcher" : null,
+	"max_version_max" : "none",
+	"max_version_min" : "6.1",
+	"name" : "imp.ltc",
+	"os" : 	{
+		"macintosh" : 		{
+			"platform" : [  ],
+			"min_version" : "none"
+		}
+,
+		"windows" : 		{
+			"platform" : [ "ia32", "x64" ],
+			"min_version" : "7"
+		}
+
+	}
+,
+	"package_extra" : 	{
+
+	}
+,
+	"tags" : [ "msp", "timecode", "video", "synchronization", "externals" ],
+	"version" : "1.0.0.0",
+	"website" : "http://www.theimpersonalstereo.com",
+	"filelist" : 	{
+		"externals" : [ "imp.ltc.encode~.mxe", "imp.ltc.encode~.mxe64", "imp.ltc.encode~.mxo", "imp.ltc.decode~.mxe", "imp.ltc.decode~.mxe64", "imp.ltc.decode~.mxo", ],
+		"help" : [ "imp.ltc.encode~.maxhelp", "imp.ltc.decode~.maxhelp" ],
+		"media" : [ "LTC_00_58_00_00__1mins_2997_ndf.wav" ]
+	}
+}

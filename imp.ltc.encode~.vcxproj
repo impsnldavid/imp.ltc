@@ -267,9 +267,16 @@
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\commonsyms.c" />
     <ClCompile Include="lib\libltc\src\decoder.c" />
     <ClCompile Include="lib\libltc\src\encoder.c" />
-    <ClCompile Include="lib\libltc\src\ltc.c" />
     <ClCompile Include="lib\libltc\src\timecode.c" />
     <ClCompile Include="src\imp.ltc.encode~.c" />
+    <ClCompile Include="src\ltc_ext.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lib\libltc\src\decoder.h" />
+    <ClInclude Include="lib\libltc\src\encoder.h" />
+    <ClInclude Include="lib\libltc\src\ltc.h" />
+    <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\ltc_ext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
