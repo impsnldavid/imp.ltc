@@ -26,15 +26,14 @@
 #include "math.h"
 
 #include "common.h"
-#include <ext_preprocessor.h>
-#include <ext_preprocessor.h>
-
 
 
 typedef struct _ltc_encode
 {
 	t_pxobject object_;
 	LTCEncoder* encoder_;
+	t_systhread_mutex mutex_;
+	t_bool shouldRefreshEncoder_;
 
 	void* outlet_; // Dump outlet
 
@@ -49,8 +48,14 @@ typedef struct _ltc_encode
 	char tclock_;
 	char tcReverse_;
 
-	Framerate attrFramerate_;
+	FrameRate attrFramerate_;
 	TimecodeFormat attrOutputFormat_;
+	
+	long samplerate_;
+	ltcsnd_sample_t* smpteBuffer_;
+	int smpteBufferLen_;
+	int smpteBufferPos_;
+
 } t_ltc_encode;
 
 
@@ -60,7 +65,7 @@ void ltc_encode_free(t_ltc_encode* x);
 void ltc_encode_assist(t_ltc_encode* x, void* b, long m, long a, char* s);
 void ltc_encode_dsp64(t_ltc_encode* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts,
-                          long sampleframes, long flags, void* userparam);
+						  long sampleframes, long flags, void* userparam);
 t_max_err ltc_encode_attrframerate_set(t_ltc_encode* x, t_object* attr, long argc, t_atom* argv);
 
 
@@ -74,12 +79,12 @@ void ext_main(void* r)
 	t_class* c;
 
 	c = class_new("imp.ltc.encode~",
-	              (method)ltc_encode_new,
-	              (method)ltc_encode_free,
-	              sizeof(t_ltc_encode),
-	              (method)NULL,
-	              A_GIMME,
-	              0);
+				  (method)ltc_encode_new,
+				  (method)ltc_encode_free,
+				  sizeof(t_ltc_encode),
+				  (method)NULL,
+				  A_GIMME,
+				  0);
 
 	class_dspinit(c);
 
@@ -112,7 +117,14 @@ void* ltc_encode_new(t_symbol* s, long argc, t_atom* argv)
 
 	if ((x = (t_ltc_encode*)object_alloc(ltc_encode_class)))
 	{
+		systhread_mutex_new(&x->mutex_, SYSTHREAD_MUTEX_NORMAL);
+		x->shouldRefreshEncoder_ = false;
+		
 		x->outlet_ = outlet_new((t_object*)x, NULL);
+
+		x->smpteBuffer_ = NULL;
+		x->smpteBufferLen_ = 0;
+		x->smpteBufferPos_ = 0;
 
 		x->hours_ = 0;
 		x->minutes_ = 0;
@@ -120,12 +132,14 @@ void* ltc_encode_new(t_symbol* s, long argc, t_atom* argv)
 		x->frames_ = 0;
 
 		x->tclock_ = 0;
-		object_attr_setlong(x, gensym("framerate"), FRAMERATE_30DF);
+		object_attr_setlong(x, gensym("framerate"), FRAMERATE_DEFAULT);
 		x->attrOutputFormat_ = TIMECODEFORMAT_RAW;
 
 		attr_args_process(x, argc, argv);
 
-		dsp_setup((t_pxobject*)x, 1);
+		dsp_setup((t_pxobject*)x, 0);
+		outlet_new((t_object *)x, "signal");
+		outlet_new((t_object *)x, "signal");
 	}
 
 	return x;
@@ -135,41 +149,213 @@ void ltc_encode_free(t_ltc_encode* x)
 {
 	dsp_free((t_pxobject*)x);
 
-	ltc_encoder_free(x->encoder_);
+	if (x->encoder_ != NULL)
+		ltc_encoder_free(x->encoder_);
+
+	if (x->smpteBuffer_ != NULL)
+		sysmem_freeptr(x->smpteBuffer_);
+
+	systhread_mutex_free(x->mutex_);
 }
 
 void ltc_encode_assist(t_ltc_encode* x, void* b, long m, long a, char* s)
 {
 	if (m == ASSIST_INLET)
-		sprintf(s, "Timecode signal");
+	{
+		sprintf(s, "imp.ltc.encode~");
+	}
 	else
-		sprintf(s, "Decoded time");
+	{
+		if (a == 0)
+			sprintf(s, "(signal) ltc");
+		else if (a == 1)
+			sprintf(s, "(signal) sync time in ms");
+		else
+			sprintf(s, "timecode readout");
+	}
 }
 
 void ltc_encode_dsp64(t_ltc_encode* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
 {
-	if (x->encoder_ == NULL)
-		x->encoder_ = ltc_encoder_create(samplerate, x->fps_, x->tvStandardFlags_, 0);
-	else
-		ltc_encoder_reinit(x->encoder_, samplerate, x->fps_, x->tvStandardFlags_, 0);
+	x->samplerate_ = samplerate;
+	x->shouldRefreshEncoder_ = true;
 
-	object_method(dsp64, gensym("dsp_add64"), x, ltc_encode_perform64, 0, NULL);
+	dsp_add64(dsp64, (t_object*)x, ltc_encode_perform64, 0, NULL);
 }
 
 void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts,
-                          long sampleframes, long flags, void* userparam)
+						  long sampleframes, long flags, void* userparam)
 
 {
+	double *out = outs[0];
+	int n = sampleframes;
+
+	if (x->shouldRefreshEncoder_)
+	{
+		systhread_mutex_lock(x->mutex_);
+
+		if (x->encoder_ == NULL)
+			x->encoder_ = ltc_encoder_create(x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
+
+		ltc_encoder_set_bufsize(x->encoder_, x->samplerate_, x->fps_);
+		ltc_encoder_reinit(x->encoder_, x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
+
+		x->encoder_->f.dfbit = x->attrFramerate_ == FRAMERATE_30DF;
+
+		if (x->smpteBuffer_ != NULL)
+			sysmem_freeptr(x->smpteBuffer_);
+
+		x->smpteBuffer_ = (ltcsnd_sample_t*)sysmem_newptrclear(ltc_encoder_get_buffersize(x->encoder_) * sizeof(ltcsnd_sample_t));
+
+		SMPTETimecode st;
+		const char timezone[6] = "+0100";
+		strcpy(st.timezone, "+0100");
+		st.years = 17;
+		st.months = 04;
+		st.days = 01;
+
+		st.hours = 1;
+		st.mins = 0;
+		st.secs = 0;
+		st.frame = 0;
+
+		ltc_encoder_set_timecode(x->encoder_, &st);
+		ltc_encoder_encode_frame(x->encoder_);
+		x->smpteBufferLen_ = ltc_encoder_get_buffer(x->encoder_, x->smpteBuffer_);
+		x->smpteBufferPos_ = 0;
+
+		x->shouldRefreshEncoder_ = false;
+
+		systhread_mutex_unlock(x->mutex_);
+	}
+
+	while (n--)
+	{
+		if (x->smpteBufferPos_ >= x->smpteBufferLen_)
+		{
+			systhread_mutex_lock(x->mutex_);
+
+			ltc_encoder_inc_timecode(x->encoder_);
+			ltc_encoder_encode_frame(x->encoder_);
+
+			x->smpteBuffer_ = ltc_encoder_get_bufptr(x->encoder_, &x->smpteBufferLen_, 1);
+
+			systhread_mutex_unlock(x->mutex_);
+
+			x->smpteBufferPos_ = 0;
+		}
+
+		*out++ = x->smpteBuffer_[x->smpteBufferPos_++] / 127.5 - 1.;
+	}
 }
 
 t_max_err ltc_encode_attrframerate_set(t_ltc_encode* x, t_object* attr, long argc, t_atom* argv)
 {
-	x->attrFramerate_ = (Framerate)atom_getlong(argv);
+	if (argc > 1)
+	{
+		object_error((t_object*)x, "Invalid framerate value");
+		x->attrFramerate_ = FRAMERATE_DEFAULT;
+	}
+	else
+	{
+		switch (atom_gettype(argv))
+		{
+		case A_LONG:
+		{
+			t_atom_long value = atom_getlong(argv);
+
+			if (value >= 0 && value <= 5)
+			{
+				x->attrFramerate_ = (FrameRate)value;
+			}
+			else
+			{
+				switch (value)
+				{
+				case 24:
+					x->attrFramerate_ = FRAMERATE_24;
+					break;
+				case 25:
+					x->attrFramerate_ = FRAMERATE_25;
+					break;
+				case 30:
+					x->attrFramerate_ = FRAMERATE_30;
+					break;
+				default:
+					object_error((t_object*)x, "Invalid framerate value '%ld'", value);
+					x->attrFramerate_ = FRAMERATE_DEFAULT;
+					break;
+				}
+			}
+		}
+		break;
+
+		case A_FLOAT:
+		{
+			t_atom_float value = atom_getfloat(argv);
+
+			if (value == 23.97 || value == (24 / 1.001))
+			{
+				x->attrFramerate_ = FRAMERATE_23_97;
+			}
+			else if (value == 29.97 || value == (30 / 1.001))
+			{
+				x->attrFramerate_ = FRAMERATE_30DF;
+			}
+			else
+			{
+				switch ((int)value)
+				{
+				case 24:
+					x->attrFramerate_ = FRAMERATE_24;
+					break;
+				case 25:
+					x->attrFramerate_ = FRAMERATE_25;
+					break;
+				case 30:
+					x->attrFramerate_ = FRAMERATE_30;
+					break;
+				default:
+					object_error((t_object*)x, "Invalid framerate value '%f'", value);
+					x->attrFramerate_ = FRAMERATE_DEFAULT;
+					break;
+				}
+			}
+		}
+		break;
+
+		case A_SYM:
+		{
+			t_symbol* value = atom_getsym(argv);
+
+			if (strcmp_case_insensitive(value->s_name, "30df") == 0)
+			{
+				x->attrFramerate_ = FRAMERATE_30DF;
+			}
+			else if (strcmp_case_insensitive(value->s_name, "30nd") == 0)
+			{
+				x->attrFramerate_ = FRAMERATE_30ND;
+			}
+			else
+			{
+				object_error((t_object*)x, "Invalid framerate value '%s'", value->s_name);
+				x->attrFramerate_ = FRAMERATE_DEFAULT;
+			}
+		}
+		break;
+
+		default:
+			object_error((t_object*)x, "Invalid framerate value");
+			x->attrFramerate_ = FRAMERATE_DEFAULT;
+			break;
+		}
+	}
+	
 
 	switch (x->attrFramerate_)
 	{
 		case FRAMERATE_23_97:
-			x->fps_ = 23.976;
+			x->fps_ = 24 / 1.001;
 			x->tvStandardFlags_ = LTC_TV_FILM_24;
 			break;
 		case FRAMERATE_24:
@@ -182,7 +368,7 @@ t_max_err ltc_encode_attrframerate_set(t_ltc_encode* x, t_object* attr, long arg
 			break;
 		case FRAMERATE_30DF:
 		case FRAMERATE_30ND:
-			x->fps_ = 29.97;
+			x->fps_ = 30. / 1.001;
 			x->tvStandardFlags_ = LTC_TV_525_60;
 			break;
 		case FRAMERATE_30:
@@ -190,6 +376,8 @@ t_max_err ltc_encode_attrframerate_set(t_ltc_encode* x, t_object* attr, long arg
 			x->tvStandardFlags_ = LTC_TV_525_60;
 			break;
 	}
+
+	x->shouldRefreshEncoder_ = true;
 
 	return MAX_ERR_NONE;
 }

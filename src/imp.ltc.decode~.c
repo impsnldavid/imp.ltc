@@ -48,7 +48,7 @@ typedef struct _ltc_decode
 	char tclock_;
 	char tcReverse_;
 
-	Framerate attrFramerate_;
+	FrameRate attrFramerate_;
 	TimecodeFormat attrOutputFormat_;
 } t_ltc_decode;
 
@@ -239,7 +239,7 @@ int ltc_decode_getnumframes(t_ltc_decode* x)
 
 t_max_err ltc_decode_attrframerate_set(t_ltc_decode* x, t_object* attr, long argc, t_atom* argv)
 {
-	x->attrFramerate_ = (Framerate)atom_getlong(argv);
+	x->attrFramerate_ = (FrameRate)atom_getlong(argv);
 
 	switch (x->attrFramerate_)
 	{

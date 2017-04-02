@@ -22,6 +22,8 @@
 #define VERSION_MINOR 0
 #define VERSION_BUGFIX 0
 
+#define FRAMERATE_DEFAULT FRAMERATE_30DF
+
 typedef enum _OutputFormat
 {
 	TIMECODEFORMAT_RAW,
@@ -31,7 +33,7 @@ typedef enum _OutputFormat
 } TimecodeFormat;
 
 
-typedef enum _Framerate
+typedef enum _FrameRate
 {
 	FRAMERATE_23_97,
 	FRAMERATE_24,
@@ -39,7 +41,8 @@ typedef enum _Framerate
 	FRAMERATE_30DF,
 	FRAMERATE_30ND,
 	FRAMERATE_30
-} Framerate;
+} FrameRate;
+
 
 
 #endif
