@@ -1,5 +1,5 @@
 // This file is part of imp.ltc
-// Copyright (C) 2017 David Butler / The Impersonal Stereo
+// Copyright (C) 2018 David Butler / The Impersonal Stereo
 //
 // imp.ltc is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -187,65 +187,73 @@ void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long n
 						  long sampleframes, long flags, void* userparam)
 
 {
-	double *out = outs[0];
+	double *ltcOut = outs[0];
+	double *msOut = outs[1];
 	int n = sampleframes;
 
 	if (x->shouldRefreshEncoder_)
 	{
-		systhread_mutex_lock(x->mutex_);
+		if (systhread_mutex_trylock(x->mutex_) == 0)
+		{
+			if (x->encoder_ == NULL)
+				x->encoder_ = ltc_encoder_create(x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
 
-		if (x->encoder_ == NULL)
-			x->encoder_ = ltc_encoder_create(x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
+			ltc_encoder_set_bufsize(x->encoder_, x->samplerate_, x->fps_);
+			ltc_encoder_reinit(x->encoder_, x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
 
-		ltc_encoder_set_bufsize(x->encoder_, x->samplerate_, x->fps_);
-		ltc_encoder_reinit(x->encoder_, x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
+			x->encoder_->f.dfbit = x->attrFramerate_ == FRAMERATE_30DF;
 
-		x->encoder_->f.dfbit = x->attrFramerate_ == FRAMERATE_30DF;
+			if (x->smpteBuffer_ != NULL)
+				sysmem_freeptr(x->smpteBuffer_);
 
-		if (x->smpteBuffer_ != NULL)
-			sysmem_freeptr(x->smpteBuffer_);
+			x->smpteBuffer_ = (ltcsnd_sample_t*)sysmem_newptrclear(ltc_encoder_get_buffersize(x->encoder_) * sizeof(ltcsnd_sample_t));
 
-		x->smpteBuffer_ = (ltcsnd_sample_t*)sysmem_newptrclear(ltc_encoder_get_buffersize(x->encoder_) * sizeof(ltcsnd_sample_t));
+			SMPTETimecode st;
+			const char timezone[6] = "+0100";
+			strcpy(st.timezone, "+0100");
+			st.years = 17;
+			st.months = 04;
+			st.days = 01;
 
-		SMPTETimecode st;
-		const char timezone[6] = "+0100";
-		strcpy(st.timezone, "+0100");
-		st.years = 17;
-		st.months = 04;
-		st.days = 01;
+			st.hours = 1;
+			st.mins = 0;
+			st.secs = 0;
+			st.frame = 0;
 
-		st.hours = 1;
-		st.mins = 0;
-		st.secs = 0;
-		st.frame = 0;
+			ltc_encoder_set_timecode(x->encoder_, &st);
+			ltc_encoder_encode_frame(x->encoder_);
+			x->smpteBufferLen_ = ltc_encoder_get_buffer(x->encoder_, x->smpteBuffer_);
+			x->smpteBufferPos_ = 0;
 
-		ltc_encoder_set_timecode(x->encoder_, &st);
-		ltc_encoder_encode_frame(x->encoder_);
-		x->smpteBufferLen_ = ltc_encoder_get_buffer(x->encoder_, x->smpteBuffer_);
-		x->smpteBufferPos_ = 0;
+			x->shouldRefreshEncoder_ = false;
 
-		x->shouldRefreshEncoder_ = false;
-
-		systhread_mutex_unlock(x->mutex_);
+			systhread_mutex_unlock(x->mutex_);
+		}	
 	}
 
 	while (n--)
 	{
 		if (x->smpteBufferPos_ >= x->smpteBufferLen_)
 		{
-			systhread_mutex_lock(x->mutex_);
+			if (systhread_mutex_trylock(x->mutex_) == 0)
+			{
+				ltc_encoder_inc_timecode(x->encoder_);
+				ltc_encoder_encode_frame(x->encoder_);
 
-			ltc_encoder_inc_timecode(x->encoder_);
-			ltc_encoder_encode_frame(x->encoder_);
+				x->smpteBuffer_ = ltc_encoder_get_bufptr(x->encoder_, &x->smpteBufferLen_, 1);
 
-			x->smpteBuffer_ = ltc_encoder_get_bufptr(x->encoder_, &x->smpteBufferLen_, 1);
+				systhread_mutex_unlock(x->mutex_);
 
-			systhread_mutex_unlock(x->mutex_);
-
-			x->smpteBufferPos_ = 0;
+				x->smpteBufferPos_ = 0;
+			}
+			else
+			{
+				*ltcOut++ = 0;
+				continue;
+			}
 		}
 
-		*out++ = x->smpteBuffer_[x->smpteBufferPos_++] / 127.5 - 1.;
+		*ltcOut++ = x->smpteBuffer_[x->smpteBufferPos_++] / 127.5 - 1.;
 	}
 }
 
