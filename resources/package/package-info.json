@@ -7,11 +7,11 @@
 	"extensible" : 0,
 	"homepatcher" : null,
 	"max_version_max" : "none",
-	"max_version_min" : "6.1",
+	"max_version_min" : "8.0.2",
 	"name" : "imp.ltc",
 	"os" : 	{
 		"macintosh" : 		{
-			"platform" : [  ],
+			"platform" : [ "x64" ],
 			"min_version" : "none"
 		}
 ,
