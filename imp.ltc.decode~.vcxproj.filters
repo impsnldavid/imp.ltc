@@ -5,9 +5,6 @@
     <ClCompile Include="lib\libltc\src\decoder.c">
       <Filter>libltc</Filter>
     </ClCompile>
-    <ClCompile Include="src\ltc_ext.c">
-      <Filter>libltc</Filter>
-    </ClCompile>
     <ClCompile Include="lib\libltc\src\timecode.c">
       <Filter>libltc</Filter>
     </ClCompile>
@@ -20,6 +17,9 @@
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\dllmain_win.c">
       <Filter>maxsdk</Filter>
     </ClCompile>
+    <ClCompile Include="lib\libltc\src\ltc.c">
+      <Filter>libltc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="libltc">
@@ -31,9 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h" />
-    <ClInclude Include="src\ltc_ext.h">
-      <Filter>libltc</Filter>
-    </ClInclude>
     <ClInclude Include="lib\libltc\src\decoder.h">
       <Filter>libltc</Filter>
     </ClInclude>
