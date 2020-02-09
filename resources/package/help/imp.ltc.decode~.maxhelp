@@ -2,13 +2,14 @@
 	"patcher" : 	{
 		"fileversion" : 1,
 		"appversion" : 		{
-			"major" : 7,
-			"minor" : 3,
-			"revision" : 2,
+			"major" : 8,
+			"minor" : 1,
+			"revision" : 1,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
+		"classnamespace" : "box",
 		"rect" : [ 632.0, 487.0, 640.0, 508.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
@@ -43,8 +44,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 360.0, 440.0, 240.0, 48.0 ],
-					"style" : "",
+					"patching_rect" : [ 360.0, 440.0, 240.0, 47.0 ],
 					"text" : "LTC decoding implemented using libltc.\n\nhttps://x42.github.io/libltc/"
 				}
 
@@ -56,8 +56,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 360.0, 235.0, 240.0, 34.0 ],
-					"style" : "",
+					"patching_rect" : [ 360.0, 235.0, 240.0, 33.0 ],
 					"text" : "Framerate must be set correctly for the timecode source in order to decode."
 				}
 
@@ -69,8 +68,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 150.0, 310.0, 440.0, 34.0 ],
-					"style" : "",
+					"patching_rect" : [ 150.0, 310.0, 440.0, 33.0 ],
 					"text" : "Format can be timecode time (frames) or real time. Note that when using 30 non-drop framerate, timecode time is not equal to real time."
 				}
 
@@ -90,7 +88,6 @@
 					"parameter_enable" : 0,
 					"patching_rect" : [ 490.0, 195.0, 20.0, 20.0 ],
 					"rounded" : 60.0,
-					"style" : "",
 					"text" : "2",
 					"textcolor" : [ 0.34902, 0.34902, 0.34902, 1.0 ]
 				}
@@ -107,7 +104,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 340.0, 185.0, 150.0, 40.0 ],
-					"style" : "",
 					"text" : "play example timecode audio file"
 				}
 
@@ -127,7 +123,6 @@
 					"parameter_enable" : 0,
 					"patching_rect" : [ 151.0, 142.5, 20.0, 20.0 ],
 					"rounded" : 60.0,
-					"style" : "",
 					"text" : "1",
 					"textcolor" : [ 0.34902, 0.34902, 0.34902, 1.0 ]
 				}
@@ -143,7 +138,6 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 70.0, 140.0, 79.0, 25.0 ],
-					"style" : "",
 					"text" : "start dsp"
 				}
 
@@ -156,22 +150,20 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 20.0, 370.0, 74.0, 22.0 ],
-					"style" : "",
 					"text" : "prepend set"
 				}
 
 			}
 , 			{
 				"box" : 				{
-					"fontname" : "Consolas",
+					"fontname" : "Courier New",
 					"fontsize" : 48.0,
 					"id" : "obj-14",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 30.0, 420.0, 300.0, 63.0 ],
-					"style" : "",
-					"text" : "00 00 00 00",
+					"patching_rect" : [ 30.0, 420.0, 385.0, 61.0 ],
+					"text" : "0 58 59 29",
 					"textcolor" : [ 0.0, 0.533333, 0.168627, 1.0 ]
 				}
 
@@ -187,8 +179,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 20.0, 410.0, 320.0, 80.0 ],
 					"proportion" : 0.39,
-					"rounded" : 20,
-					"style" : ""
+					"rounded" : 20
 				}
 
 			}
@@ -197,25 +188,25 @@
 					"clipheight" : 29.0,
 					"data" : 					{
 						"clips" : [ 							{
+								"absolutepath" : "/Users/David/Documents/Max 8/Packages/imp.ltc/resources/package/media/LTC_00_58_00_00__1mins_2997_ndf.wav",
 								"filename" : "LTC_00_58_00_00__1mins_2997_ndf.wav",
 								"filekind" : "audiofile",
-								"selection" : [ 0.0, 1.0 ],
-								"loop" : 1,
+								"loop" : 0,
 								"content_state" : 								{
-									"mode" : [ "basic" ],
-									"pitchshift" : [ 1.0 ],
-									"slurtime" : [ 0.0 ],
-									"basictuning" : [ 440 ],
-									"quality" : [ "basic" ],
 									"originaltempo" : [ 120.0 ],
-									"play" : [ 0 ],
+									"mode" : [ "basic" ],
+									"basictuning" : [ 440 ],
 									"speed" : [ 1.0 ],
-									"formantcorrection" : [ 0 ],
-									"timestretch" : [ 0 ],
-									"followglobaltempo" : [ 0 ],
+									"pitchshift" : [ 1.0 ],
 									"pitchcorrection" : [ 0 ],
+									"followglobaltempo" : [ 0 ],
+									"slurtime" : [ 0.0 ],
+									"play" : [ 0 ],
+									"timestretch" : [ 0 ],
+									"formantcorrection" : [ 0 ],
 									"originallengthms" : [ 0.0 ],
 									"originallength" : [ 0.0, "ticks" ],
+									"quality" : [ "basic" ],
 									"formant" : [ 1.0 ]
 								}
 
@@ -228,8 +219,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 5,
 					"outlettype" : [ "signal", "signal", "signal", "", "dictionary" ],
-					"patching_rect" : [ 20.0, 190.0, 320.0, 30.0 ],
-					"style" : ""
+					"patching_rect" : [ 20.0, 190.0, 320.0, 30.0 ]
 				}
 
 			}
@@ -240,8 +230,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "signal" ],
-					"patching_rect" : [ 20.0, 130.0, 45.0, 45.0 ],
-					"style" : ""
+					"patching_rect" : [ 20.0, 130.0, 45.0, 45.0 ]
 				}
 
 			}
@@ -253,8 +242,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 70.0, 280.0, 300.0, 22.0 ],
-					"style" : ""
+					"patching_rect" : [ 70.0, 280.0, 300.0, 22.0 ]
 				}
 
 			}
@@ -266,8 +254,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 50.0, 240.0, 300.0, 22.0 ],
-					"style" : ""
+					"patching_rect" : [ 50.0, 240.0, 300.0, 22.0 ]
 				}
 
 			}
@@ -284,7 +271,6 @@
 						"framerate" : 4
 					}
 ,
-					"style" : "",
 					"text" : "imp.ltc.decode~"
 				}
 
@@ -309,8 +295,6 @@
 		"lines" : [ 			{
 				"patchline" : 				{
 					"destination" : [ "obj-15", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
 					"source" : [ "obj-1", 0 ]
 				}
 
@@ -318,8 +302,6 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
 					"source" : [ "obj-11", 0 ]
 				}
 
@@ -327,8 +309,6 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-14", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
 					"source" : [ "obj-15", 0 ]
 				}
 
@@ -336,8 +316,6 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
 					"source" : [ "obj-3", 0 ]
 				}
 
@@ -345,8 +323,6 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
-					"disabled" : 0,
-					"hidden" : 0,
 					"source" : [ "obj-4", 0 ]
 				}
 
@@ -360,22 +336,17 @@
 			}
 , 			{
 				"name" : "LTC_00_58_00_00__1mins_2997_ndf.wav",
-				"bootpath" : "~/Documents/Max 7/Packages/imp.ltc/media",
+				"bootpath" : "~/Documents/Max 8/Packages/imp.ltc/resources/package/media",
+				"patcherrelativepath" : "../media",
 				"type" : "WAVE",
 				"implicit" : 1
 			}
 , 			{
-				"name" : "imp.ltc.decode~.mxe64",
-				"type" : "mx64"
+				"name" : "imp.ltc.decode~.mxo",
+				"type" : "iLaX"
 			}
  ],
-		"autosave" : 0,
-		"bgfillcolor_type" : "gradient",
-		"bgfillcolor_color1" : [ 0.376471, 0.384314, 0.4, 1.0 ],
-		"bgfillcolor_color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-		"bgfillcolor_color" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-		"bgfillcolor_angle" : 270.0,
-		"bgfillcolor_proportion" : 0.39
+		"autosave" : 0
 	}
 
 }

@@ -1,5 +1,5 @@
 // This file is part of imp.ltc
-// Copyright (C) 2018 David Butler / The Impersonal Stereo
+// Copyright (C) 2020 David Butler / The Impersonal Stereo
 //
 // imp.ltc is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -19,7 +19,7 @@
 #include "ext_obex.h"
 #include "z_dsp.h"
 
-#include "ltc_ext.h"
+#include "ltc.h"
 #include "decoder.h"
 #include "encoder.h"
 
@@ -180,16 +180,14 @@ void ltc_encode_dsp64(t_ltc_encode* x, t_object* dsp64, short* count, double sam
 	x->samplerate_ = samplerate;
 	x->shouldRefreshEncoder_ = true;
 
-	dsp_add64(dsp64, (t_object*)x, ltc_encode_perform64, 0, NULL);
+	dsp_add64(dsp64, (t_object*)x, (t_perfroutine64)ltc_encode_perform64, 0, NULL);
 }
 
-void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts,
-						  long sampleframes, long flags, void* userparam)
-
+void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
-	double *ltcOut = outs[0];
-	double *msOut = outs[1];
-	int n = sampleframes;
+	double* ltcOut = outs[0];
+	double* msOut = outs[1];
+	long n = sampleframes;
 
 	if (x->shouldRefreshEncoder_)
 	{
@@ -198,7 +196,7 @@ void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long n
 			if (x->encoder_ == NULL)
 				x->encoder_ = ltc_encoder_create(x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
 
-			ltc_encoder_set_bufsize(x->encoder_, x->samplerate_, x->fps_);
+			ltc_encoder_set_buffersize(x->encoder_, x->samplerate_, x->fps_);
 			ltc_encoder_reinit(x->encoder_, x->samplerate_, x->fps_, x->tvStandardFlags_, LTC_USE_DATE);
 
 			x->encoder_->f.dfbit = x->attrFramerate_ == FRAMERATE_30DF;
@@ -222,7 +220,8 @@ void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long n
 
 			ltc_encoder_set_timecode(x->encoder_, &st);
 			ltc_encoder_encode_frame(x->encoder_);
-			x->smpteBufferLen_ = ltc_encoder_get_buffer(x->encoder_, x->smpteBuffer_);
+            
+			x->smpteBufferLen_ = ltc_encoder_copy_buffer(x->encoder_, x->smpteBuffer_);
 			x->smpteBufferPos_ = 0;
 
 			x->shouldRefreshEncoder_ = false;
@@ -240,7 +239,7 @@ void ltc_encode_perform64(t_ltc_encode* x, t_object* dsp64, double** ins, long n
 				ltc_encoder_inc_timecode(x->encoder_);
 				ltc_encoder_encode_frame(x->encoder_);
 
-				x->smpteBuffer_ = ltc_encoder_get_bufptr(x->encoder_, &x->smpteBufferLen_, 1);
+                x->smpteBufferLen_ = ltc_encoder_get_bufferptr(x->encoder_, &x->smpteBuffer_, 1);
 
 				systhread_mutex_unlock(x->mutex_);
 

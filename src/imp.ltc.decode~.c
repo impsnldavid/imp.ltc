@@ -1,5 +1,5 @@
 // This file is part of imp.ltc
-// Copyright (C) 2018 David Butler / The Impersonal Stereo
+// Copyright (C) 2020 David Butler / The Impersonal Stereo
 //
 // imp.ltc is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -19,7 +19,7 @@
 #include "ext_obex.h"
 #include "z_dsp.h"
 
-#include "ltc_ext.h"
+#include "ltc.h"
 #include "decoder.h"
 #include "encoder.h"
 
@@ -28,13 +28,13 @@
 #include "common.h"
 
 
-
 typedef struct _ltc_decode
 {
 	t_pxobject object_; // The object
 	LTCDecoder* decoder_; // The decoder
 	LTCFrameExt frame_; // The LTC frame
 	ltcsnd_sample_t buffer_[1024]; // The sample buffer
+    ltc_off_t sampleOffset_;
 
 	void* outlet_; // Dump outlet
 
@@ -129,6 +129,7 @@ void* ltc_decode_new(t_symbol* s, long argc, t_atom* argv)
 		attr_args_process(x, argc, argv);
 
 		x->decoder_ = ltc_decoder_create(1920, 32);
+        x->sampleOffset_ = 0;
 	}
 
 	return x;
@@ -154,13 +155,12 @@ void ltc_decode_dsp64(t_ltc_decode* x, t_object* dsp64, short* count, double sam
 	object_method(dsp64, gensym("dsp_add64"), x, ltc_decode_perform64, 0, NULL);
 }
 
-void ltc_decode_perform64(t_ltc_decode* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts,
-                          long sampleframes, long flags, void* userparam)
+void ltc_decode_perform64(t_ltc_decode* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 
 {
 	double* in = ins[0];
 
-	ltc_decoder_write_double(x->decoder_, in, sampleframes, NULL);
+    ltc_decoder_write_double(x->decoder_, in, sampleframes, x->sampleOffset_);
 
 	while (ltc_decoder_read(x->decoder_, &x->frame_))
 	{
@@ -176,6 +176,8 @@ void ltc_decode_perform64(t_ltc_decode* x, t_object* dsp64, double** ins, long n
 
 		defer((t_object*)x, (method)ltc_decode_tcout, NULL, 0, NULL);
 	}
+    
+    x->sampleOffset_ += sampleframes;
 }
 
 void ltc_decode_tcout(t_ltc_decode* x, t_symbol* s, long argc, t_atom* argv)
